@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, UserManager
 from django.conf import settings
+from django.db.models.base import Model
 
 
 class UserManager(BaseUserManager):
@@ -58,3 +59,24 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Recipe(models.Model):
+    """
+    recipe object
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.CASCADE
+    )
+    title = models.CharField(max_length=255)
+    time_minutes = models.IntegerField()
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    link = models.CharField(max_length=255, blank=True)
+    # you can pass the class refrence, but you have to place the model above, so just pass the string of
+    # the object name you want to many to many
+    ingredients = models.ManyToManyField('Ingredient')
+    tags = models.ManyToManyField('Tag')
+
+    def __str__(self):
+        return self.title
