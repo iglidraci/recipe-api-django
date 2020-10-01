@@ -1,3 +1,4 @@
+from django.db.models import query
 from django.shortcuts import render
 from rest_framework import viewsets, mixins, status
 from rest_framework.authentication import TokenAuthentication
@@ -53,8 +54,29 @@ class RecipeViewSet(viewsets.ModelViewSet):
     authentication_classes  = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    #private function
+    def __params_to_ints(self, qs):
+        # convert a list of string id into a list of ints
+        # our_string = '1,2,3,4'
+        return [int(str_id) for str_id in qs.split(',')]
+
     def get_queryset(self):
-        return self.queryset.filter(user = self.request.user)
+        """
+        retrieve the recipes for authenticated user
+        """
+        # retrive get params for tags
+        tags = self.request.query_params.get('tags')
+        ingredients = self.request.query_params.get('ingredients')
+        queryset = self.queryset
+        if tags:
+            tag_ids = self.__params_to_ints(tags)
+            # django sintax to filter on foreign keys
+            queryset = queryset.filter(tags__id__in=tag_ids)
+        if ingredients:
+            ing_ids = self.__params_to_ints(ingredients)
+            queryset = queryset.filter(ingredients__id__in=ing_ids)
+        #return this instead of the main query set
+        return queryset.filter(user = self.request.user).distinct()
 
     def get_serializer_class(self):
         """
