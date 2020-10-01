@@ -2,6 +2,17 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, UserManager
 from django.conf import settings
 from django.db.models.base import Model
+import uuid
+import os
+
+
+def recipe_image_file_path(instance, file_name):
+    """
+    generate file path for new recipe image
+    """
+    extension = file_name.split('.')[-1] # return tthe last item after spliting
+    file_name = f'{uuid.uuid4()}.{extension}'
+    return os.path.join('uploads/recipe/',file_name)
 
 
 class UserManager(BaseUserManager):
@@ -77,6 +88,7 @@ class Recipe(models.Model):
     # the object name you want to many to many
     ingredients = models.ManyToManyField('Ingredient')
     tags = models.ManyToManyField('Tag')
+    image = models.ImageField(null=True, upload_to = recipe_image_file_path)
 
     def __str__(self):
         return self.title
